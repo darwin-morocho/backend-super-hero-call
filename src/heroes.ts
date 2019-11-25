@@ -85,7 +85,7 @@ export default class SuperHeroes {
     return null;
   }
 
-  assignSuperHero(socket: Socket, superHeroName: string) {
+  assignSuperHero(io: Server, socket: Socket, superHeroName: string) {
     let superHero: ISuperHero | null = this.getSuperHero(superHeroName); // get the super hero by name
 
     if (superHero) {
@@ -97,12 +97,12 @@ export default class SuperHeroes {
 
         socket.join(superHeroName); // join the socket to one room with the superhero name
         // We inform to the user that a superhero has been assigned
-        socket.to(socket.id).emit("on-assigned", superHeroName);
+        io.to(socket.id).emit("on-assigned", superHeroName);
         //We inform other users that a superhero has been taken
         socket.broadcast.emit("on-taken", superHeroName);
       } else {
         // We inform to the user that the requested super hero is not available
-        socket.to(socket.id).emit("on-assigned", null);
+        io.to(socket.id).emit("on-assigned", null);
       }
     }
   }
@@ -121,6 +121,7 @@ export default class SuperHeroes {
   }
 
   requestCall(requestData: {
+    io: Server;
     socket: Socket;
     superHeroName: string;
     data: any;
@@ -145,7 +146,7 @@ export default class SuperHeroes {
         const timeOutId: NodeJS.Timeout = setTimeout(() => {
           // after the TIME_OUT and the user does not send an answer to this request
           // We inform the requesting user that the call was not taken
-          requestData.socket.to(requestData.socket.id).emit("on-response", {
+          requestData.io.to(requestData.socket.id).emit("on-response", {
             superHeroName: requestData.superHeroName,
             data: null
           });
@@ -159,6 +160,7 @@ export default class SuperHeroes {
           superHeroName: superHeroAssiged
         });
 
+        // emit data to the requested user
         requestData.socket.to(requestData.superHeroName).emit("on-request", {
           superHeroName: superHeroAssiged,
           data: requestData.data,
@@ -167,7 +169,7 @@ export default class SuperHeroes {
       }
     } else {
       // We inform to the user that the requested superhero is not available to take the call
-      requestData.socket.to(requestData.socket.id).emit("on-response", {
+      requestData.io.to(requestData.socket.id).emit("on-response", {
         superHeroName: requestData.superHeroName,
         data: null
       });

@@ -8,13 +8,13 @@ export default (io: Server) => {
 
     // a user requests a super hero as a user
     socket.on("pick", (superHeroName: string) =>
-      superHeroes.assignSuperHero(socket, superHeroName)
+      superHeroes.assignSuperHero(io, socket, superHeroName)
     );
 
     socket.on(
       "request",
       ({ superHeroName, data }: { superHeroName: string; data: any }) =>
-        superHeroes.requestCall({ socket, superHeroName, data })
+        superHeroes.requestCall({ io, socket, superHeroName, data })
     );
 
     socket.on(
