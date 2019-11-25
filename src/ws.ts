@@ -1,11 +1,10 @@
 import { Socket, Server } from "socket.io";
 import SuperHeroes from "./heroes";
-
 const superHeroes = new SuperHeroes();
 
 export default (io: Server) => {
   io.on("connection", (socket: Socket) => {
-    socket.emit("on-superheores", superHeroes.data);
+    io.to(socket.id).emit("on-connected", superHeroes.listOfSuperHeroes());
 
     // a user requests a super hero as a user
     socket.on("pick", (superHeroName: string) =>

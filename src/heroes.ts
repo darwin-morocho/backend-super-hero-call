@@ -16,8 +16,8 @@ interface IRequest {
 const TIME_OUT = 30000;
 
 export default class SuperHeroes {
-  data: Map<string, ISuperHero> = new Map<string, ISuperHero>();
-  requests: Map<string, IRequest> = new Map<string, IRequest>();
+  private data: Map<string, ISuperHero> = new Map<string, ISuperHero>();
+  private requests: Map<string, IRequest> = new Map<string, IRequest>();
 
   constructor() {
     // initialize the superheroes
@@ -27,42 +27,42 @@ export default class SuperHeroes {
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar00.png",
         available: true,
-        inCall: true
+        inCall: false
       },
       {
         name: "Iron-Man",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar05.png",
         available: true,
-        inCall: true
+        inCall: false
       },
       {
         name: "Bat-Man",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar02.png",
         available: true,
-        inCall: true
+        inCall: false
       },
       {
         name: "Wonder-Woman",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar01.png",
         available: true,
-        inCall: true
+        inCall: false
       },
       {
         name: "Black-Widow",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar07.png",
         available: true,
-        inCall: true
+        inCall: false
       },
       {
         name: "Elektra",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar06.png",
         available: true,
-        inCall: true
+        inCall: false
       }
     ];
     tmp.forEach((item: ISuperHero) => {
@@ -70,7 +70,13 @@ export default class SuperHeroes {
     });
   }
 
-  
+  listOfSuperHeroes(): {} {
+    let obj = Array.from(this.data).reduce(
+      (obj, [key, value]) => Object.assign(obj, { [key]: value }), // Be careful! Maps can have non-String keys; object literals can't.
+      {}
+    );
+    return obj;
+  }
 
   getSuperHero(superHeroName: string): ISuperHero | null {
     if (this.data.has(superHeroName)) {
