@@ -94,7 +94,7 @@ export default class SuperHeroes {
         //if the super hero is available
         superHero.available = false;
         this.data.set(superHeroName, superHero); // update the super hero availability
-
+        socket.handshake.query.superHeroAssiged = superHeroName;
         socket.join(superHeroName); // join the socket to one room with the superhero name
         // We inform to the user that a superhero has been assigned
         io.to(socket.id).emit("on-assigned", superHeroName);

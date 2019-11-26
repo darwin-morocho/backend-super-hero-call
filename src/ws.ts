@@ -29,7 +29,9 @@ export default (io: Server) => {
         superHeroAssiged
       }: { superHeroAssiged: string | null } = socket.handshake.query;
 
+      console.log("discpnnected", superHeroAssiged);
       if (superHeroAssiged) {
+        socket.handshake.query.superHeroAssiged = null;
         superHeroes.enabledAgain(socket, superHeroAssiged);
       }
     });
