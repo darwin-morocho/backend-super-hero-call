@@ -17,6 +17,8 @@ export default (io: Server) => {
         superHeroes.requestCall({ io, socket, superHeroName, data })
     );
 
+    socket.on("cancel-request", () => superHeroes.cancelRequest(io, socket));
+
     socket.on(
       "response",
       ({ requestId, data = null }: { requestId: string; data: any | null }) =>

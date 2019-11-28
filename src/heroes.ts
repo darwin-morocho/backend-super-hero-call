@@ -3,7 +3,7 @@ import { Socket, Server } from "socket.io";
 export interface ISuperHero {
   name: string;
   avatar: string;
-  available: boolean;
+  isTaken: boolean;
   inCall: boolean;
 }
 
@@ -26,42 +26,42 @@ export default class SuperHeroes {
         name: "Super-Man",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar00.png",
-        available: true,
+        isTaken: false,
         inCall: false
       },
       {
         name: "Iron-Man",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar05.png",
-        available: true,
+        isTaken: false,
         inCall: false
       },
       {
         name: "Bat-Man",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar02.png",
-        available: true,
+        isTaken: false,
         inCall: false
       },
       {
         name: "Wonder-Woman",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar01.png",
-        available: true,
+        isTaken: false,
         inCall: false
       },
       {
         name: "Black-Widow",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar07.png",
-        available: true,
+        isTaken: false,
         inCall: false
       },
       {
         name: "Elektra",
         avatar:
           "https://superherotar.framiq.com/assets/examples/superherotar06.png",
-        available: true,
+        isTaken: false,
         inCall: false
       }
     ];
@@ -90,9 +90,9 @@ export default class SuperHeroes {
 
     if (superHero) {
       // if the super hero is inside the superHeroes map
-      if (superHero.available) {
+      if (!superHero.isTaken) {
         //if the super hero is available
-        superHero.available = false;
+        superHero.isTaken = true;
         this.data.set(superHeroName, superHero); // update the super hero availability
         socket.handshake.query.superHeroAssiged = superHeroName;
         socket.join(superHeroName); // join the socket to one room with the superhero name
@@ -114,7 +114,7 @@ export default class SuperHeroes {
 
     if (superHero) {
       // if the super hero is inside the superHeroes map
-      superHero.available = true;
+      superHero.isTaken = false;
       this.data.set(superHeroName, superHero); // update the superhero availability
     }
     socket.emit("on-disconnected", superHeroName); // We inform other users that a superhero has been disconnected
@@ -130,7 +130,7 @@ export default class SuperHeroes {
       requestData.superHeroName
     ); // get the super hero by name
     // if the super hero is inside the superHeroes map and he can take a call
-    if (superHero && !superHero.inCall) {
+    if (superHero && !superHero.inCall && superHero.isTaken) {
       // get the name of the superHero that is request the call
       const {
         superHeroAssiged
@@ -160,6 +160,8 @@ export default class SuperHeroes {
           superHeroName: superHeroAssiged
         });
 
+        requestData.socket.handshake.query.requestId = requestId; //save the requestId in my socket handshake.query
+
         // emit data to the requested user
         requestData.socket.to(requestData.superHeroName).emit("on-request", {
           superHeroName: superHeroAssiged,
@@ -168,11 +170,22 @@ export default class SuperHeroes {
         });
       }
     } else {
+      console.log("superhero is not available to call");
       // We inform to the user that the requested superhero is not available to take the call
       requestData.io.to(requestData.socket.id).emit("on-response", {
         superHeroName: requestData.superHeroName,
         data: null
       });
+    }
+  }
+
+  cancelRequest(io: Server, socket: Socket) {
+    const { requestId }: { requestId: string | null } = socket.handshake.query;
+    if (requestId) {
+      this.deleteRequest(requestId);
+      const superHeroCalled: string = requestId.split("-")[0];
+      socket.handshake.query.requestId = null;
+      io.to(superHeroCalled).emit("on-cancel-request");
     }
   }
 
