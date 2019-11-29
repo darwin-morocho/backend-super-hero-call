@@ -10,6 +10,8 @@ Event Names for "emit"
 
 * **_`response`_** `( { requestId:string, data: any | null } ) :` you must issue to this event to accept or decline an incoming call. Send `data` as `null` to decline the incoming call.
 
+- **_`finish-call :`_** emit to dis event to finish a current call.
+
 # ONs
 
 Event Names for "on"
@@ -25,3 +27,6 @@ Event Names for "on"
 - **_`on-cancel-request :`_** when you are in an incomming call and the caller finished the call before you take it.
 
 - **_`on-response`_** `( { superHeroName: string, data: any | null } ) :` when you call another user with `on-request` you need to listen to this event to know if the other user accepts or rejects your call request. `data` will be `null` if the user refuses or he does not answer the call.
+
+
+- **_`on-finish-call :`_**  invoked when the other user finish the call

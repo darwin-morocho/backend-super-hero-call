@@ -14,7 +14,7 @@ export default (io: Server) => {
     socket.on(
       "request",
       ({ superHeroName, data }: { superHeroName: string; data: any }) =>
-        superHeroes.requestCall({ io, socket, superHeroName, data })
+        superHeroes.requestCall({ io, socket, callee: superHeroName, data })
     );
 
     socket.on("cancel-request", () => superHeroes.cancelRequest(io, socket));
@@ -22,8 +22,10 @@ export default (io: Server) => {
     socket.on(
       "response",
       ({ requestId, data = null }: { requestId: string; data: any | null }) =>
-        superHeroes.reponseToRequest({ socket, requestId, data })
+        superHeroes.reponseToRequest({ io, socket, requestId, data })
     );
+
+    socket.on("finish-call", () => superHeroes.finishCall(io, socket, false));
 
     // if the current socket has been disconnected
     socket.on("disconnect", () => {
@@ -31,10 +33,12 @@ export default (io: Server) => {
         superHeroAssiged
       }: { superHeroAssiged: string | null } = socket.handshake.query;
 
-      console.log("discpnnected", superHeroAssiged);
       if (superHeroAssiged) {
+        console.log("disconnected", superHeroAssiged);
+        superHeroes.cancelRequest(io, socket);
+        superHeroes.finishCall(io, socket, true);
         socket.handshake.query.superHeroAssiged = null;
-        superHeroes.enabledAgain(socket, superHeroAssiged);
+        superHeroes.enabledAgain(io, superHeroAssiged);
       }
     });
   });

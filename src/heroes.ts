@@ -13,7 +13,7 @@ interface IRequest {
   superHeroName: string;
 }
 
-const TIME_OUT = 30000;
+const TIME_OUT = 10000;
 
 export default class SuperHeroes {
   private data: Map<string, ISuperHero> = new Map<string, ISuperHero>();
@@ -107,9 +107,9 @@ export default class SuperHeroes {
     }
   }
 
-  enabledAgain(socket: Socket, superHeroName: string) {
+  enabledAgain(io: Server, superHeroName: string) {
     // if the user disconneted has a super hero assigned
-    socket.leave(superHeroName); // the socket leave superhero room
+
     let superHero: ISuperHero | null = this.getSuperHero(superHeroName); // get the super hero by name
 
     if (superHero) {
@@ -117,18 +117,17 @@ export default class SuperHeroes {
       superHero.isTaken = false;
       this.data.set(superHeroName, superHero); // update the superhero availability
     }
-    socket.emit("on-disconnected", superHeroName); // We inform other users that a superhero has been disconnected
+    io.emit("on-disconnected", superHeroName); // We inform other users that a superhero has been disconnected
   }
 
   requestCall(requestData: {
     io: Server;
     socket: Socket;
-    superHeroName: string;
+    callee: string;
     data: any;
   }) {
-    let superHero: ISuperHero | null = this.getSuperHero(
-      requestData.superHeroName
-    ); // get the super hero by name
+    console.log("request to ", requestData.callee);
+    let superHero: ISuperHero | null = this.getSuperHero(requestData.callee); // get the super hero by name
     // if the super hero is inside the superHeroes map and he can take a call
     if (superHero && !superHero.inCall && superHero.isTaken) {
       // get the name of the superHero that is request the call
@@ -141,15 +140,17 @@ export default class SuperHeroes {
       if (superHeroAssiged) {
         // We inform the user that another wants to connect for a call
 
-        const requestId: string = `${superHeroAssiged}-${Date.now()}`; // create a requestId
+        const requestId: string = `${requestData.callee}_${Date.now()}`; // create a requestId
 
         const timeOutId: NodeJS.Timeout = setTimeout(() => {
           // after the TIME_OUT and the user does not send an answer to this request
           // We inform the requesting user that the call was not taken
           requestData.io.to(requestData.socket.id).emit("on-response", {
-            superHeroName: requestData.superHeroName,
+            superHeroName: requestData.callee,
             data: null
           });
+
+          requestData.io.to(requestData.callee).emit("on-cancel-request");
           this.deleteRequest(requestId);
         }, TIME_OUT);
 
@@ -160,10 +161,11 @@ export default class SuperHeroes {
           superHeroName: superHeroAssiged
         });
 
+        requestData.socket.join(requestId);
         requestData.socket.handshake.query.requestId = requestId; //save the requestId in my socket handshake.query
-
+        console.log("calling to ", requestData.callee);
         // emit data to the requested user
-        requestData.socket.to(requestData.superHeroName).emit("on-request", {
+        requestData.io.to(requestData.callee).emit("on-request", {
           superHeroName: superHeroAssiged,
           data: requestData.data,
           requestId
@@ -173,7 +175,7 @@ export default class SuperHeroes {
       console.log("superhero is not available to call");
       // We inform to the user that the requested superhero is not available to take the call
       requestData.io.to(requestData.socket.id).emit("on-response", {
-        superHeroName: requestData.superHeroName,
+        superHeroName: requestData.callee,
         data: null
       });
     }
@@ -181,10 +183,12 @@ export default class SuperHeroes {
 
   cancelRequest(io: Server, socket: Socket) {
     const { requestId }: { requestId: string | null } = socket.handshake.query;
+    console.log("cancelRequest " + requestId);
     if (requestId) {
       this.deleteRequest(requestId);
-      const superHeroCalled: string = requestId.split("-")[0];
+      const superHeroCalled: string = requestId.split("_")[0];
       socket.handshake.query.requestId = null;
+      console.log("cancel", superHeroCalled);
       io.to(superHeroCalled).emit("on-cancel-request");
     }
   }
@@ -198,6 +202,7 @@ export default class SuperHeroes {
   }
 
   reponseToRequest(responseData: {
+    io: Server;
     socket: Socket;
     requestId: string;
     data: any | null;
@@ -234,14 +239,37 @@ export default class SuperHeroes {
               this.data.set(me.name, me); // the superhero is in calling
             }
 
+            if (responseData.data) {
+              // if the callee accept the call
+              responseData.socket.join(responseData.requestId);
+              responseData.socket.handshake.query.requestId =
+                responseData.requestId;
+            }
+
             // We send to the requesting user the response to the previous request
-            responseData.socket.to(superHeroName).emit("on-response", {
-              superHeroName: "",
+            responseData.io.to(superHeroName).emit("on-response", {
+              superHeroName: superHeroAssiged,
               data: responseData.data
             });
           }
         }
       }
+    }
+  }
+
+  finishCall(io: Server, socket: Socket, isDisconnected: boolean = false) {
+    const { requestId }: { requestId: string | null } = socket.handshake.query;
+    if (requestId) {
+      if (isDisconnected) {
+        io.to(requestId).emit("on-finish-call"); // we inform to the other hero that call is finished
+      } else {
+        socket.broadcast.to(requestId).emit("on-finish-call"); // we inform to the other hero that call is finished
+      }
+
+      // for (const id in io.sockets.in(requestId).sockets) {
+      //   io.nsps.clients.connected[id].leave(requestId);
+      //   io.nsps.clients.connected[id].handshake.query.requestId = null;
+      // }
     }
   }
 }
