@@ -25,6 +25,13 @@ export default (io: Server) => {
         superHeroes.reponseToRequest({ io, socket, requestId, data })
     );
 
+    socket.on(
+      "candidate",
+      ({ requestId, candidate }: { requestId: string; candidate: any }) => {
+        socket.broadcast.to(requestId).emit("on-candidate", candidate);
+      }
+    );
+
     socket.on("finish-call", () => superHeroes.finishCall(io, socket, false));
 
     // if the current socket has been disconnected
