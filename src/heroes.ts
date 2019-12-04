@@ -124,7 +124,7 @@ export default class SuperHeroes {
     io: Server;
     socket: Socket;
     callee: string;
-    data: any;
+    offer: any;
   }) {
     console.log("request to ", requestData.callee);
     let superHero: ISuperHero | null = this.getSuperHero(requestData.callee); // get the super hero by name
@@ -145,10 +145,7 @@ export default class SuperHeroes {
         const timeOutId: NodeJS.Timeout = setTimeout(() => {
           // after the TIME_OUT and the user does not send an answer to this request
           // We inform the requesting user that the call was not taken
-          requestData.io.to(requestData.socket.id).emit("on-response", {
-            superHeroName: requestData.callee,
-            data: null
-          });
+          requestData.io.to(requestData.socket.id).emit("on-response", null);
 
           requestData.io.to(requestData.callee).emit("on-cancel-request");
           this.deleteRequest(requestId);
@@ -167,17 +164,14 @@ export default class SuperHeroes {
         // emit data to the requested user
         requestData.io.to(requestData.callee).emit("on-request", {
           superHeroName: superHeroAssiged,
-          data: requestData.data,
+          offer: requestData.offer,
           requestId
         });
       }
     } else {
       console.log("superhero is not available to call");
       // We inform to the user that the requested superhero is not available to take the call
-      requestData.io.to(requestData.socket.id).emit("on-response", {
-        superHeroName: requestData.callee,
-        data: null
-      });
+      requestData.io.to(requestData.socket.id).emit("on-response", null);
     }
   }
 
@@ -205,7 +199,7 @@ export default class SuperHeroes {
     io: Server;
     socket: Socket;
     requestId: string;
-    data: any | null;
+    answer: any | null;
   }) {
     if (this.requests.has(responseData.requestId)) {
       const request: IRequest = this.requests.get(responseData.requestId)!;
@@ -233,24 +227,21 @@ export default class SuperHeroes {
           );
           // if the requesting super hero can take the call
           if (requestingSuperHero && !requestingSuperHero.inCall) {
-            if (responseData.data != null) {
+            if (responseData.answer) {
               let me: ISuperHero = this.getSuperHero(superHeroName)!;
               me.inCall == true;
               this.data.set(me.name, me); // the superhero is in calling
-            }
-
-            if (responseData.data) {
               // if the callee accept the call
               responseData.socket.join(responseData.requestId);
               responseData.socket.handshake.query.requestId =
                 responseData.requestId;
+              // We send to the requesting user the response to the previous request
+              responseData.io
+                .to(superHeroName)
+                .emit("on-response", responseData.answer);
+            } else {
+              responseData.io.to(superHeroName).emit("on-response", null);
             }
-
-            // We send to the requesting user the response to the previous request
-            responseData.io.to(superHeroName).emit("on-response", {
-              superHeroName: superHeroAssiged,
-              data: responseData.data
-            });
           }
         }
       }
