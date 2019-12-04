@@ -124,7 +124,7 @@ export default class SuperHeroes {
     io: Server;
     socket: Socket;
     callee: string;
-    data: any;
+    offer: any;
   }) {
     console.log("request to ", requestData.callee);
     let superHero: ISuperHero | null = this.getSuperHero(requestData.callee); // get the super hero by name
@@ -167,7 +167,7 @@ export default class SuperHeroes {
         // emit data to the requested user
         requestData.io.to(requestData.callee).emit("on-request", {
           superHeroName: superHeroAssiged,
-          data: requestData.data,
+          offer: requestData.offer,
           requestId
         });
       }
@@ -205,7 +205,7 @@ export default class SuperHeroes {
     io: Server;
     socket: Socket;
     requestId: string;
-    data: any | null;
+    answer: any | null;
   }) {
     if (this.requests.has(responseData.requestId)) {
       const request: IRequest = this.requests.get(responseData.requestId)!;
@@ -233,13 +233,13 @@ export default class SuperHeroes {
           );
           // if the requesting super hero can take the call
           if (requestingSuperHero && !requestingSuperHero.inCall) {
-            if (responseData.data != null) {
+            if (responseData.answer != null) {
               let me: ISuperHero = this.getSuperHero(superHeroName)!;
               me.inCall == true;
               this.data.set(me.name, me); // the superhero is in calling
             }
 
-            if (responseData.data) {
+            if (responseData.answer) {
               // if the callee accept the call
               responseData.socket.join(responseData.requestId);
               responseData.socket.handshake.query.requestId =
@@ -249,7 +249,7 @@ export default class SuperHeroes {
             // We send to the requesting user the response to the previous request
             responseData.io.to(superHeroName).emit("on-response", {
               superHeroName: superHeroAssiged,
-              data: responseData.data
+              data: responseData.answer
             });
           }
         }

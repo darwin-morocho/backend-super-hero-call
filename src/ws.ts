@@ -4,6 +4,7 @@ const superHeroes = new SuperHeroes();
 
 export default (io: Server) => {
   io.on("connection", (socket: Socket) => {
+    console.log("conencted", socket.id);
     io.to(socket.id).emit("on-connected", superHeroes.listOfSuperHeroes());
 
     // a user requests a super hero as a user
@@ -13,24 +14,26 @@ export default (io: Server) => {
 
     socket.on(
       "request",
-      ({ superHeroName, data }: { superHeroName: string; data: any }) =>
-        superHeroes.requestCall({ io, socket, callee: superHeroName, data })
+      ({ superHeroName, offer }: { superHeroName: string; offer: any }) =>
+        superHeroes.requestCall({ io, socket, callee: superHeroName, offer })
     );
 
     socket.on("cancel-request", () => superHeroes.cancelRequest(io, socket));
 
     socket.on(
       "response",
-      ({ requestId, data = null }: { requestId: string; data: any | null }) =>
-        superHeroes.reponseToRequest({ io, socket, requestId, data })
+      ({
+        requestId,
+        answer = null
+      }: {
+        requestId: string;
+        answer: any | null;
+      }) => superHeroes.reponseToRequest({ io, socket, requestId, answer })
     );
 
-    socket.on(
-      "candidate",
-      ({ requestId, candidate }: { requestId: string; candidate: any }) => {
-        socket.broadcast.to(requestId).emit("on-candidate", candidate);
-      }
-    );
+    socket.on("candidate", ({ him, candidate }) => {
+      socket.broadcast.to(him).emit("on-candidate", candidate);
+    });
 
     socket.on("finish-call", () => superHeroes.finishCall(io, socket, false));
 
