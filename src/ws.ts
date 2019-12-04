@@ -32,7 +32,7 @@ export default (io: Server) => {
     );
 
     socket.on("candidate", ({ him, candidate }) => {
-      socket.broadcast.to(him).emit("on-candidate", candidate);
+      io.to(him).emit("on-candidate", candidate);
     });
 
     socket.on("finish-call", () => superHeroes.finishCall(io, socket, false));

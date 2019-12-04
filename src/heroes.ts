@@ -147,7 +147,7 @@ export default class SuperHeroes {
           // We inform the requesting user that the call was not taken
           requestData.io.to(requestData.socket.id).emit("on-response", {
             superHeroName: requestData.callee,
-            data: null
+            answer: null
           });
 
           requestData.io.to(requestData.callee).emit("on-cancel-request");
@@ -176,7 +176,7 @@ export default class SuperHeroes {
       // We inform to the user that the requested superhero is not available to take the call
       requestData.io.to(requestData.socket.id).emit("on-response", {
         superHeroName: requestData.callee,
-        data: null
+        answer: null
       });
     }
   }
@@ -249,7 +249,7 @@ export default class SuperHeroes {
             // We send to the requesting user the response to the previous request
             responseData.io.to(superHeroName).emit("on-response", {
               superHeroName: superHeroAssiged,
-              data: responseData.answer
+              answer: responseData.answer
             });
           }
         }
