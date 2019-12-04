@@ -4,7 +4,6 @@ const superHeroes = new SuperHeroes();
 
 export default (io: Server) => {
   io.on("connection", (socket: Socket) => {
-    console.log("conencted", socket.id);
     io.to(socket.id).emit("on-connected", superHeroes.listOfSuperHeroes());
 
     // a user requests a super hero as a user
@@ -15,7 +14,12 @@ export default (io: Server) => {
     socket.on(
       "request",
       ({ superHeroName, offer }: { superHeroName: string; offer: any }) =>
-        superHeroes.requestCall({ io, socket, callee: superHeroName, offer })
+        superHeroes.requestCall({
+          io,
+          socket,
+          callee: superHeroName,
+          offer
+        })
     );
 
     socket.on("cancel-request", () => superHeroes.cancelRequest(io, socket));
@@ -31,9 +35,12 @@ export default (io: Server) => {
       }) => superHeroes.reponseToRequest({ io, socket, requestId, answer })
     );
 
-    socket.on("candidate", ({ him, candidate }) => {
-      io.to(him).emit("on-candidate", candidate);
-    });
+    socket.on(
+      "candidate",
+      ({ to, candidate }: { to: string; candidate: any }) => {
+        socket.broadcast.to(to).emit("on-candidate", candidate);
+      }
+    );
 
     socket.on("finish-call", () => superHeroes.finishCall(io, socket, false));
 
