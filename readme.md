@@ -14,7 +14,6 @@ Event Names for "emit"
 
 - **_`candidate ({ him: string, candidate: { candidate: string, sdpMid: string, sdpMLineIndex: number} }) :`_** when both accept the connection we need send their ICE Candidates to the other user.
 
-
 # ONs
 
 Event Names for "on"
@@ -29,9 +28,8 @@ Event Names for "on"
 
 - **_`on-cancel-request :`_** when you are in an incomming call and the caller finished the call before you take it.
 
-- **_`on-response`_** `( { superHeroName: string, answer: any | null } ) :` when you call another user with `on-request` you need to listen to this event to know if the other user accepts or rejects your call request. `answer` will be `null` if the user refuses or he does not answer the call.
+- **_`on-response`_** `( answer: any | null ) :` when you call another user with `on-request` you need to listen to this event to know if the other user accepts or rejects your call request. `answer` will be `null` if the user refuses or he does not answer the call.
 
+* **_`on-finish-call :`_** invoked when the other user finish the call
 
-- **_`on-finish-call :`_**  invoked when the other user finish the call
-
-- **_`on-candidate ({ candidate: string, sdpMid: string, sdpMLineIndex: number} ):`_**  the ICE Candidate to the other user in the current call
+* **_`on-candidate ({ candidate: string, sdpMid: string, sdpMLineIndex: number} ):`_** the ICE Candidate to the other user in the current call
