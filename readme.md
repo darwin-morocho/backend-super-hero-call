@@ -20,7 +20,7 @@ Event Names for "on"
 
 - **_`on-assigned`_** `( string | null ) :` when you emit to `pick` and the server check if the hero is available you will get a `string` with the `superHeroName` if the superhero was assiged to you. You will get `null` if the superhero was taken by other user.
 
-* **_`on-disconnected`_** `( string ) :` the server emit to this event when a superhero disconnects. The received `string` is the name of the superhero that disconnected.
+* **_`on-disconnected`_** `( string ) :` the server emit to this event when a superhero has disconnected. The received `string` is the name of the superhero disconnected.
 
 * **_`on-taken`_** `( string ) :` when a superhero was assigned to one user the server emit to this event with the name of the superhero assigned.
 
