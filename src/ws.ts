@@ -37,8 +37,8 @@ export default (io: Server) => {
 
     socket.on(
       "candidate",
-      ({ to, candidate }: { to: string; candidate: any }) => {
-        socket.broadcast.to(to).emit("on-candidate", candidate);
+      ({ him, candidate }: { him: string; candidate: any }) => {
+        socket.broadcast.to(him).emit("on-candidate", candidate);
       }
     );
 
