@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`running on ${PORT}`);
   //every 5 minutes
-  setInterval(() => {
-    axios.get("https://backend-super-hero-call.herokuapp.com");
-  }, 1000 * 60 * 5);
+  // setInterval(() => {
+  //   axios.get("https://backend-super-hero-call.herokuapp.com");
+  // }, 1000 * 60 * 5);
 });
